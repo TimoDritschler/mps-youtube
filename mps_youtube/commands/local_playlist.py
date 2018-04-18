@@ -122,27 +122,27 @@ def save_last():
 def open_save_view(action, name):
     """ Open, save or view a playlist by name.  Get closest name match. """
     name = name.replace(" ", "-")
-    if action == "open" or action == "view":
-        saved = g.userpl.get(name)
 
-        if not saved:
-            name = util.get_near_name(name, g.userpl)
-            saved = g.userpl.get(name)
+    if name not in g.userpl:
+        name = util.get_near_name(name, g.userpl)
 
-        elif action == "open":
-            g.active.songs = list(saved.songs)
-            g.last_opened = name
-            msg = util.F("pl loaded") % name
-            paginatesongs(g.active, msg=msg)
+    saved = g.userpl.get(name)
 
-        elif action == "view":
-            g.last_opened = ""
-            msg = util.F("pl viewed") % name
-            paginatesongs(list(saved.songs), msg=msg)
+    if not saved:
+        g.message = util.F("pl not found") % name
+        g.content = content.playlists_display()
+        return
 
-        elif not saved and action in "view open".split():
-            g.message = util.F("pl not found") % name
-            g.content = content.playlists_display()
+    if action == "open":
+        g.active.songs = list(saved.songs)
+        g.last_opened = name
+        msg = util.F("pl loaded") % name
+        paginatesongs(g.active, msg=msg)
+
+    elif action == "view":
+        g.last_opened = ""
+        msg = util.F("pl viewed") % name
+        paginatesongs(list(saved.songs), msg=msg)
 
     elif action == "save":
         if not g.model:
@@ -158,14 +158,14 @@ def open_save_view(action, name):
                     pass
 
                 elif entry is "y" or entry is "Y":
-                    g.userpl[name] = Playlist(name, list(g.model.songs))
+                    g.userpl[name] = Playlist(name, list(g.active.songs))
                     g.message = util.F('pl saved') % name
                     playlists.save()
 
                 else:
                     g.message = "Unnknown option: '" + c.r + entry + c.w + "'"
             else:
-                g.userpl[name] = Playlist(name, list(g.model.songs))
+                g.userpl[name] = Playlist(name, list(g.active.songs))
                 g.message = util.F('pl saved') % name
                 playlists.save()
 
