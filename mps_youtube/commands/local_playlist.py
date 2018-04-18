@@ -150,11 +150,26 @@ def open_save_view(action, name):
             g.content = content.generate_songlist_display()
 
         else:
-            g.userpl[name] = Playlist(name, list(g.model.songs))
-            g.message = util.F('pl saved') % name
-            playlists.save()
-            g.content = content.generate_songlist_display()
+            if name in g.userpl:
+                entry = input("Playlist " + c.g + name + c.w +
+                        " already exists. Overwrite it? [y] [n] > ")
 
+                if entry is "n" or entry is "N":
+                    pass
+
+                elif entry is "y" or entry is "Y":
+                    g.userpl[name] = Playlist(name, list(g.model.songs))
+                    g.message = util.F('pl saved') % name
+                    playlists.save()
+
+                else:
+                    g.message = "Unnknown option: '" + c.r + entry + c.w + "'"
+            else:
+                g.userpl[name] = Playlist(name, list(g.model.songs))
+                g.message = util.F('pl saved') % name
+                playlists.save()
+
+        g.content = content.generate_songlist_display()
 
 @command(r'(open|view)\s*(\d{1,4})')
 def open_view_bynum(action, num):
